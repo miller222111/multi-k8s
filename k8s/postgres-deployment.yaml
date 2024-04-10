@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: postgres
+  template:
+    metadata:
+      labels:
+        component: postgres
+    spec:
+    # Allocate storage
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: database-persistent-volume-claim
+      containers:
+        - name: postgres
+          image: postgres
+          ports:
+            - containerPort: 5432
+          # Specifies how we want our storage to be used inside 
+          # container
+          volumeMounts:
+          # volume name and volume mount name are identical
+            - name: postgres-storage
+             # Specify where inside the container this storage
+             # should be made available. We will specify the
+             # data dir that Postgres uses for storing data
+             # on the HD
+              mountPath: /var/lib/postgresql/data
+              # Required for Postgres in particular. Means that
+              # inside the persistent volume and mountPath, you
+              # will find a folder called "postgres" which will
+              # contain our saved data
+              subPath: postgres
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pgpassword
+                  key: PGPASSWORD

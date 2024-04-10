@@ -1,0 +1,50 @@
+name: Deploy MultiDocker
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps: 
+      - uses: actions/checkout@v3
+      # Specify Docker as dependency
+      # - run: docker login -u ${{ secrets.DOCKER_USERNAME}} -p ${{ secrets.DOCKER_PASSWORD }}
+      - run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login --username ${{ secrets.DOCKER_USERNAME}} --password-stdin
+
+      # Build test version of React project (can easily add other services here)
+      - run: docker build -t miller222111/react-test -f ./client/Dockerfile.dev ./client
+      
+      # Run tests on React project test version (can easily add other services here)
+      - run: docker run -e CI=true miller222111/react-test npm test
+      
+      # Build Prod versions of all of our projects if tests pass
+      - run: docker build -t miller222111/multi-client ./client
+      - run: docker build -t miller222111/multi-nginx ./nginx
+      - run: docker build -t miller222111/multi-server ./server
+      - run: docker build -t miller222111/multi-worker ./worker
+
+      # Push all services/projects Images to Docker Hub
+      - run: docker push miller222111/multi-client
+      - run: docker push miller222111/multi-nginx
+      - run: docker push miller222111/multi-server
+      - run: docker push miller222111/multi-worker
+
+      # - name: Generate deployment package
+      #   run: zip -r deploy.zip . -x '*.git*'
+
+      # - name: Deploy to EB
+      #   uses: einaregilsson/beanstalk-deploy@v18
+      #   with:
+      #     aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+      #     aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+      #     application_name: multi-docker
+      #     environment_name: Multi-docker-env
+      #     existing_bucket_name: elasticbeanstalk-us-gov-west-1-108514116999
+      #     region: us-gov-west-1
+      #     version_label: ${{ github.sha }}
+      #     deployment_package: deploy.zip
+
+      # Logout of Docker
+      - run: docker logout

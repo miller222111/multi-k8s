@@ -21,13 +21,13 @@ jobs:
       
       # Build Prod versions of all of our projects if tests pass
       - run: docker build -t miller222111/multi-client ./client
-      - run: docker build -t miller222111/multi-nginx ./nginx
+      # - run: docker build -t miller222111/multi-nginx ./nginx
       - run: docker build -t miller222111/multi-server ./server
       - run: docker build -t miller222111/multi-worker ./worker
 
       # Push all services/projects Images to Docker Hub
       - run: docker push miller222111/multi-client
-      - run: docker push miller222111/multi-nginx
+      # - run: docker push miller222111/multi-nginx
       - run: docker push miller222111/multi-server
       - run: docker push miller222111/multi-worker
 

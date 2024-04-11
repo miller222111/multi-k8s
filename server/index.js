@@ -27,10 +27,10 @@ const pgClient = new Pool({
     password: keys.pgPassword,
     port: keys.pgPort,
     // SSL was needed for AWS deployment
-    // ssl:
-    //     process.env.NODE_ENV !== 'production'
-    //         ? false
-    //         : { rejectUnauthorized: false },
+    ssl:
+        process.env.NODE_ENV !== 'production'
+            ? false
+            : { rejectUnauthorized: false },
 });
 
 pgClient.on("connect", (client) => {

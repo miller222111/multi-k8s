@@ -45,6 +45,6 @@ jobs:
       #     region: us-gov-west-1
       #     version_label: ${{ github.sha }}
       #     deployment_package: deploy.zip
-
+      #
       # Logout of Docker
       - run: docker logout

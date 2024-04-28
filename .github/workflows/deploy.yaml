@@ -1,50 +1,138 @@
-name: Deploy MultiDocker
+# Execute script on push to master branch
+name: Deploy MultiK8s
 on:
   push:
     branches:
       - master
 
+# Env variable provides the commit ID of the current head
+# (i.e. the current commit you are viewing)
+env:
+  SHA: $(git rev-parse HEAD)
+  GKE_CLUSTER: multi-cluster
+  PROJECT_ID: multi-k8s-421500
+  GKE_ZONE: us-central1-c
+
+# Job builds images, tests image, pushes images to Docker Hub, & deploys to GKE
 jobs:
   build:
-    runs-on: ubuntu-latest
-    steps: 
+    # Specify Linux VM for runner
+    runs-on: unbuntu-latest
+    steps:
+
+      # Checkout repository
+      - name: 'Checkout'
       - uses: actions/checkout@v3
-      # Specify Docker as dependency
-      # - run: docker login -u ${{ secrets.DOCKER_USERNAME}} -p ${{ secrets.DOCKER_PASSWORD }}
-      - run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login --username ${{ secrets.DOCKER_USERNAME}} --password-stdin
 
-      # Build test version of React project (can easily add other services here)
-      - run: docker build -t miller222111/react-test -f ./client/Dockerfile.dev ./client
+      # Build and test a docker image
+      - name: Test
+        run: |-
+          docker login -u ${{ secrets.DOCKER_USERNAME}} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker build -t miller222111/react-test -f ./client/Dockerfile.dev ./client
+          docker run -e CI=true miller222111/react-test npm test
+
+      # Set Service Key for GKE
+      - name: Set Service Key
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GKE_SA_KEY }}'
+
+      # Install, and configure, the Google Cloud SDK
+      - name: Set Project and Install GC SDK
+        uses: google-github-actions/setup-gcloud@v1'
+        with:
+          project_id: ${{ env.PROJECT_ID}}
+
+      # Configure Docker to use GC CL tool as a credential helper for auth
+      - name: Docker Auth
+        run: |-
+          gcloud --quiet auth configure-docker
+
+      # Get GKE credentials to deploy to the cluster
+      - name: Get Credentials
+        uses: google-github-actions/get-gke-credentials@v1
+        with:
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}
+
+      # Build the production version of docker images
+      # Will apply the tags "latest" as well as "${{ env.SHA }}" to newly build images
+      - name: Build
+        run: |-
+          docker build -t miller222111/multi-client:latest -t miller222111/multi-client:${{ env.SHA }} -f ./client/Dockerfile ./client
+          docker build -t miller222111/multi-server:latest -t miller222111/multi-server:${{ env.SHA }} -f ./server/Dockerfile ./server
+          docker build -t miller222111/multi-worker:latest -t miller222111/multi-worker:${{ env.SHA }} -f ./worker/Dockerfile ./worker
+
+      # Push newly built images to Docker Hub
+      - name: Push
+        run: |-
+          docker push miller222111/multi-client:latest
+          docker push miller222111/multi-server:latest
+          docker push miller222111/multi-worker:latest
+          docker push miller222111/multi-client:${{ env.SHA }}
+          docker push miller222111/multi-server:${{ env.SHA }}
+          docker push miller222111/multi-worker:${{ env.SHA }}
+
+      # Apply newly created images to k8s using GC SDK
+      - name: Apply
+        run: |-
+          kubectl apply -f k8s
+          kubectl set image deployments/client-deployment client=miller222111/multi-client:${{ env.SHA }}
+          kubectl set image deployments/server-deployment server=miller222111/multi-server:${{ env.SHA }}
+          kubectl set image deployments/worker-deployment worker=miller222111/multi-worker:${{ env.SHA }}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Uncomment below in order to execute image updates and pushes to Docker Hub!
+## Code below eliminates the code related to CSP; CI/CD for docker images!
+# name: Deploy MultiDocker
+# on:
+#   push:
+#     branches:
+#       - master
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     steps: 
+#       - uses: actions/checkout@v3
+#       # Specify Docker as dependency
+#       # - run: docker login -u ${{ secrets.DOCKER_USERNAME}} -p ${{ secrets.DOCKER_PASSWORD }}
+#       - run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login --username ${{ secrets.DOCKER_USERNAME}} --password-stdin
+
+#       # Build test version of React project (can easily add other services here)
+#       - run: docker build -t miller222111/react-test -f ./client/Dockerfile.dev ./client
       
-      # Run tests on React project test version (can easily add other services here)
-      - run: docker run -e CI=true miller222111/react-test npm test
+#       # Run tests on React project test version (can easily add other services here)
+#       - run: docker run -e CI=true miller222111/react-test npm test
       
-      # Build Prod versions of all of our projects if tests pass
-      - run: docker build -t miller222111/multi-client ./client
-      # - run: docker build -t miller222111/multi-nginx ./nginx
-      - run: docker build -t miller222111/multi-server ./server
-      - run: docker build -t miller222111/multi-worker ./worker
+#       # Build Prod versions of all of our projects if tests pass
+#       - run: docker build -t miller222111/multi-client ./client
+#       # - run: docker build -t miller222111/multi-nginx ./nginx
+#       - run: docker build -t miller222111/multi-server ./server
+#       - run: docker build -t miller222111/multi-worker ./worker
 
-      # Push all services/projects Images to Docker Hub
-      - run: docker push miller222111/multi-client
-      # - run: docker push miller222111/multi-nginx
-      - run: docker push miller222111/multi-server
-      - run: docker push miller222111/multi-worker
-
-      # - name: Generate deployment package
-      #   run: zip -r deploy.zip . -x '*.git*'
-
-      # - name: Deploy to EB
-      #   uses: einaregilsson/beanstalk-deploy@v18
-      #   with:
-      #     aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
-      #     aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
-      #     application_name: multi-docker
-      #     environment_name: Multi-docker-env
-      #     existing_bucket_name: elasticbeanstalk-us-gov-west-1-108514116999
-      #     region: us-gov-west-1
-      #     version_label: ${{ github.sha }}
-      #     deployment_package: deploy.zip
+#       # Push all services/projects Images to Docker Hub
+#       - run: docker push miller222111/multi-client
+#       # - run: docker push miller222111/multi-nginx
+#       - run: docker push miller222111/multi-server
+#       - run: docker push miller222111/multi-worker
       
-      # Logout of Docker
-      - run: docker logout
+#       # Logout of Docker
+#       - run: docker logout

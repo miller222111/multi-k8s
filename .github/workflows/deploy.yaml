@@ -17,7 +17,7 @@ env:
 jobs:
   build:
     # Specify Linux VM for runner
-    runs-on: unbuntu-latest
+    runs-on: ubuntu-latest
     steps:
 
       # Checkout repository
@@ -80,24 +80,6 @@ jobs:
           kubectl set image deployments/client-deployment client=miller222111/multi-client:${{ env.SHA }}
           kubectl set image deployments/server-deployment server=miller222111/multi-server:${{ env.SHA }}
           kubectl set image deployments/worker-deployment worker=miller222111/multi-worker:${{ env.SHA }}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ## Uncomment below in order to execute image updates and pushes to Docker Hub!
 ## Code below eliminates the code related to CSP; CI/CD for docker images!

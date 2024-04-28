@@ -22,7 +22,7 @@ jobs:
 
       # Checkout repository
       # - name: 'Checkout'
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Build and test a docker image
       - name: Test
@@ -33,13 +33,13 @@ jobs:
 
       # Set Service Key for GKE
       - name: Set Service Key
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: '${{ secrets.GKE_SA_KEY }}'
 
       # Install, and configure, the Google Cloud SDK
       - name: Set Project and Install GC SDK
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ env.PROJECT_ID}}
 
@@ -50,7 +50,7 @@ jobs:
 
       # Get GKE credentials to deploy to the cluster
       - name: Get Credentials
-        uses: google-github-actions/get-gke-credentials@v0
+        uses: google-github-actions/get-gke-credentials@v2
         with:
           cluster_name: ${{ env.GKE_CLUSTER }}
           location: ${{ env.GKE_ZONE }}

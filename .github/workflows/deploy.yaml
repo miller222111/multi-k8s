@@ -21,7 +21,7 @@ jobs:
     steps:
 
       # Checkout repository
-      - name: 'Checkout'
+      # - name: 'Checkout'
       - uses: actions/checkout@v3
 
       # Build and test a docker image

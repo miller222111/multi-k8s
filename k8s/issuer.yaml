@@ -22,6 +22,6 @@ spec:
     solvers:
       # This just states that we want to use the LetsEncrypt
       # Kubernetes cluster process to establish a cert!
-      http01:
-        ingress:
-          class: nginx
+      - http01:
+          ingress:
+            class: nginx

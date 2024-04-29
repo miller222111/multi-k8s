@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: ingress-service
   annotations:
-    # kubernetes.io/ingress.class: nginx
+    kubernetes.io/ingress.class: nginx
     # Remove className annotation
     nginx.ingress.kubernetes.io/use-regex: 'true'
     # Add annotation
@@ -13,7 +13,7 @@ metadata:
     # Nginx to force users to always make use of https traffic
     nginx.ingress.kubernetes.io/ssl-redirect: 'true'
 spec:
-  ingressClassName: nginx
+  # ingressClassName: nginx
   # Add ingress className field
   tls:
     - hosts:
@@ -22,7 +22,7 @@ spec:
       secretName: kubernetes4life-com
   rules:
     - host: kubernetes4life.com
-    - http:
+      http:
         paths:
           - path: /?(.*)
             # Update path
@@ -45,7 +45,7 @@ spec:
                 port:
                   number: 5000
     - host: www.kubernetes4life.com
-    - http:
+      http:
         paths:
           - path: /?(.*)
             # Update path

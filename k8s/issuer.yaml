@@ -1,0 +1,27 @@
+
+# This Issuer's purpose is to tell Cert Manager where it 
+# should go in an attempt to get a certificate.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  # Issuer tells Cert Manager to reach out to LetsEncrypt
+  # Specifically the production version of LetsEncrypt
+  name: letsencrypt-prod
+spec:
+  acme:
+    # Cert Manager should reach out to this server to
+    # establish verification process
+    server: https://acme-v02.api.letsencrypt.org/directory
+    # LetsEncrypt says that they need our email on file
+    email: 'miller222111@gmail.com'
+    # Secret not connected to secret that is part of cert
+    # This secret is part of verification process
+    # We can forget about it
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    solvers:
+      # This just states that we want to use the LetsEncrypt
+      # Kubernetes cluster process to establish a cert!
+      http01:
+        ingress:
+          class: nginx

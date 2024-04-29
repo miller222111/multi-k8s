@@ -1,0 +1,16 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: kubernetes4life-com-tls
+spec:
+  # Specifies where our cert should be stored once obtained
+  secretName: kubernetes4life-com
+  # This is our certificate info from issuer.yaml
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: kubernetes4life.com
+  # List of all the domains that cert is good for
+  dnsNames:
+    - kubernetes4life.com
+    - www.kubernetes4life.com

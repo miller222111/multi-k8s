@@ -8,11 +8,43 @@ metadata:
     nginx.ingress.kubernetes.io/use-regex: 'true'
     # Add annotation
     nginx.ingress.kubernetes.io/rewrite-target: /$1
-    # Add annotation
+    # Inform ingress service that certificate will be used
+    cert-manager.io/cluster-issuer: 'letsencrypt-prod'
+    # Nginx to force users to always make use of https traffic
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
 spec:
   ingressClassName: nginx
   # Add ingress className field
+  tls:
+    - hosts:
+        - kubernetes4life.com
+        - www.kubernetes4life.com
+      secretName: kubernetes4life-com
   rules:
+    - host: kubernetes4life.com
+    - http:
+        paths:
+          - path: /?(.*)
+            # Update path
+            pathType: ImplementationSpecific
+            # Add pathType
+            backend:
+              service:
+                # Update service fields
+                name: client-cluster-ip-service
+                port:
+                  number: 3000
+          - path: /api/?(.*)
+            # Update path
+            pathType: ImplementationSpecific
+            # Add pathType
+            backend:
+              service:
+                # Update service fields
+                name: server-cluster-ip-service
+                port:
+                  number: 5000
+    - host: www.kubernetes4life.com
     - http:
         paths:
           - path: /?(.*)

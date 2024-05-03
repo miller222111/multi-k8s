@@ -3,7 +3,7 @@ kind: Config
 deploy:
   kubectl:
     manifests:
-      - ./k8s/*
+      - ./k8s-dev/*
       # - k8s/client-deployment.yaml
       # - k8s/server-deployment.yaml
       # - k8s/worker-deployment.yaml

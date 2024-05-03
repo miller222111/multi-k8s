@@ -76,7 +76,7 @@ jobs:
       # Apply newly created images to k8s using GC SDK
       # - name: Apply
       #   run: |-
-      #     kubectl apply -f k8s
+      #     kubectl apply -f k8s-dev
       #     kubectl set image deployments/client-deployment client=miller222111/multi-client:${{ env.SHA }}
       #     kubectl set image deployments/server-deployment server=miller222111/multi-server:${{ env.SHA }}
       #     kubectl set image deployments/worker-deployment worker=miller222111/multi-worker:${{ env.SHA }}

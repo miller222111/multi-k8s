@@ -10,7 +10,7 @@ on:
 env:
   SHA: $(git rev-parse HEAD)
   GKE_CLUSTER: multi-cluster
-  PROJECT_ID: multi-k8s-421500
+  PROJECT_ID: multi-k8s-429522
   GKE_ZONE: us-central1-c
 
 # Job builds images, tests image, pushes images to Docker Hub, & deploys to GKE
